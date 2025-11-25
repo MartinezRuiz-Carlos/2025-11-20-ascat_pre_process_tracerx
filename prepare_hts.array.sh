@@ -43,6 +43,7 @@ Rscript ../../generate_ascat_logr.R --sample_name_hash ${SAMPLE_NAME} \
 # Generate comparison plots against previous versions of BAF and logR
 Rscript ../../test_logr_baf_diffs.R --varscan_obj_path ${VARSCAN_PATH} \
                               --sample_name_hash ${SAMPLE_NAME} \
+                              --gl_name_hash ${GL_NAME} \
                               --ascat_baf ${RESULTS_OUT}/${SAMPLE_NAME}_baf.txt \
                               --ascat_logr ${RESULTS_OUT}/${SAMPLE_NAME}_logr.txt \
                               --results_dir ${RESULTS_OUT}

@@ -9,6 +9,7 @@ library(argparse)
 parser <- ArgumentParser(description = "Compare ASCAT HTS BAF and logR with previous runs based on Varscan")
 parser$add_argument("--varscan_obj_path", help = "Path to Varscan output object")
 parser$add_argument("--sample_name_hash", help = "Sample name followed by sequencing hash")
+parser$add_argument("--gl_name_hash",     help = "Germline sample name followed by sequencing hash")
 parser$add_argument("--ascat_baf",        help = "Path to ASCAT HTS BAF")
 parser$add_argument("--ascat_logr",       help = "Path to ASCAT HTS logR")
 parser$add_argument("--results_dir",      help = "Directory to store results")
@@ -206,6 +207,63 @@ ggplot(logr_corr_dt, aes(x = logr_varscan, y = logr_ascat)) +
           axis.title.y = element_text(size = 14, family = "ArialMT"),
           axis.text.y  = element_text(size = 12, family = "ArialMT"),
           axis.text.x  = element_text(size = 12, family = "ArialMT"),
+          axis.title.x = element_text(size = 14, family = "ArialMT"),
+          legend.title = element_text(size = 14, family = "ArialMT"),
+          legend.text = element_text(size = 12, family = "ArialMT"),
+          strip.background = element_rect(fill = "white"),
+          strip.text = element_text(size = 12, family = "ArialMT"))
+dev.off()
+
+# Plot the number of het/hom SNPs for each method
+# Get BAF from the GL, ASCAT source
+ascat_gl_baf <- fread(gsub(paste0(args$sample_name_hash, '_baf.txt'), paste0(args$gl_name_hash, '_baf.txt'), args$ascat_baf))
+
+ascat_gl_baf_filt <- ascat_gl_baf[, ..cols_keep_ascat]
+setnames(ascat_gl_baf_filt, cols_keep_ascat, c('chrom', 'pos', 'baf'))
+ascat_gl_baf_filt[, chrom := paste0('chr', chrom)]
+ascat_gl_baf_filt[, source := 'ascat']
+
+# From Varscan
+varscan_gl_baf <- as.data.table(cbind(varscan_pos, varscan_object$Germline_BAF))
+# Rename colnames and filter out NAs
+colnames(varscan_gl_baf) <- c('chrom', 'pos', 'baf')
+varscan_gl_baf <- varscan_gl_baf[!is.na(baf)]
+varscan_gl_baf[, source := 'varscan']
+
+#Merge
+baf_compare_gl <- rbind(ascat_gl_baf_filt, varscan_gl_baf)
+het_hom_prop <- baf_compare_gl[, .(nb_het = sum(baf < 0.7 & baf > 0.3),
+                                prop_het = sum(baf < 0.7 & baf > 0.3) / .N), by = c('chrom', 'source')]
+het_hom_prop$chrom <- factor(het_hom_prop$chrom, levels = mixedsort(unique(het_hom_prop$chrom)))
+
+# Plot
+pdf(paste0(args$results_dir, '/plot_comparisons/het_snps_comparison.pdf'), width = 8, height = 6)
+ggplot(het_hom_prop, aes(x = chrom, y = nb_het, fill = source)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    theme_bw() +
+    ylab('# het SNPS (0.3 < BAF < 0.7)') +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          axis.title.y = element_text(size = 14, family = "ArialMT"),
+          axis.text.y  = element_text(size = 12, family = "ArialMT"),
+          axis.text.x  = element_text(size = 12, family = "ArialMT", angle = 45, hjust = 1),
+          axis.title.x = element_text(size = 14, family = "ArialMT"),
+          legend.title = element_text(size = 14, family = "ArialMT"),
+          legend.text = element_text(size = 12, family = "ArialMT"),
+          strip.background = element_rect(fill = "white"),
+          strip.text = element_text(size = 12, family = "ArialMT"))
+
+ggplot(het_hom_prop, aes(x = chrom, y = prop_het, fill = source)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    theme_bw() +
+    ylab('Proportion het SNPS (0.3 < BAF < 0.7)') +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          axis.title.y = element_text(size = 14, family = "ArialMT"),
+          axis.text.y  = element_text(size = 12, family = "ArialMT"),
+          axis.text.x  = element_text(size = 12, family = "ArialMT", angle = 45, hjust = 1),
           axis.title.x = element_text(size = 14, family = "ArialMT"),
           legend.title = element_text(size = 14, family = "ArialMT"),
           legend.text = element_text(size = 12, family = "ArialMT"),
