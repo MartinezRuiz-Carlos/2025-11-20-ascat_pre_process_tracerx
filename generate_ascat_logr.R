@@ -34,7 +34,7 @@ baf_tumour_file <- paste0(args$results_dir, '/', args$sample_name_hash, '_baf.tx
 baf_gl_file <- paste0(args$results_dir, '/', args$gl_hash, '_baf.txt')
 
 # Script to test the logR and BAF extraction from ASCAT
-test <- ascat.prepareHTS(
+ascat.prepareHTS(
     tumourseqfile = tumour_bam,
     normalseqfile = gl_bam,
     tumourname = args$sample_name_hash,
@@ -49,7 +49,7 @@ test <- ascat.prepareHTS(
     tumourBAF_file = baf_tumour_file,
     normalLogR_file = logr_gl_file,
     normalBAF_file = baf_gl_file,
-    minCounts = 10,
+    minCounts = 20,
     BED_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v1/capture_targets/SureSelectV5_TRACERx_Edition.padded.reduced.bed',
     probloci_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v1/ascat/probloci.tracerx.platypus.20210122.txt',
     chrom_names = c(1:22, "X"),
