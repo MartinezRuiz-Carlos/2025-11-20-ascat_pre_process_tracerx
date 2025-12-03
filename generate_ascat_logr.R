@@ -9,12 +9,13 @@ parser$add_argument("--bam_path",         help = "Path to all bams")
 parser$add_argument("--results_dir",      help = "Directory to store results")
 parser$add_argument("--alleles_prefix",   help = "Prefix for the alleles files")
 parser$add_argument("--loci_prefix",      help = "Prefix for the loci files")
+parser$add_argument("--alignment_ext",    default = 'bam', help = "Alignment file extension, bam or cram")
 
 args <-parser$parse_args()
 
 # Generate inputs and outputs based on the sample name
-tumour_bam <- paste0(args$bam_path, '/', args$sample_name_hash, '.bam')
-gl_bam <- paste0(args$bam_path, '/', args$gl_hash, '.bam')
+tumour_bam <- paste0(args$bam_path, '/', args$sample_name_hash, '.', args$alignment_ext)
+gl_bam <- paste0(args$bam_path, '/', args$gl_hash, '.', args$alignment_ext)
 
 # Make sure BAMs exist
 assertthat::assert_that(all(c(file.exists(tumour_bam), file.exists(gl_bam))), msg = 'Tumour and/or germline BAMs are missing, check the BAM path provided')
@@ -51,7 +52,7 @@ ascat.prepareHTS(
     normalBAF_file = baf_gl_file,
     minCounts = 20,
     BED_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v1/capture_targets/SureSelectV5_TRACERx_Edition.padded.reduced.bed',
-    probloci_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v1/ascat/probloci.tracerx.platypus.20210122.txt',
+    probloci_file = '/nemo/lab/swantonc/working/ruizc/2025-06-27-compare_hg38_qc/results/2025-10-30-test_ascat_logr/input/probloci_270415.txt',
     chrom_names = c(1:22, "X"),
     min_base_qual = 20,
     min_map_qual = 20,

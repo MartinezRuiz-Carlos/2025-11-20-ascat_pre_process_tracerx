@@ -4,7 +4,7 @@
 #SBATCH --mem=16G                               # Job Memory
 #SBATCH --time=11:00:00                          # Time limit hrs:min:sec
 #SBATCH --output=tmp/logs/ascat_hts_%A_%a.log     # Standard output and error log
-#SBATCH --array=1-5                          #Number of tasks to run 
+#SBATCH --array=1-5                         #Number of tasks to run 
 
 ml purge
 module load R/4.0.0-foss-2020a

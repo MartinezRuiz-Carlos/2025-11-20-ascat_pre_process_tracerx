@@ -7,7 +7,7 @@ import argparse
 # Script to combine 1000G SNP file with actual SNP calls per patient and turn them into the ascat_HTS input format
 
 # Functions
-def skip_variant(record, min_dp, min_ad):
+def skip_variant(record, min_dp, min_ad, caller):
     """
     Function to test if a variant needs to be skipped, will skipped variants if
         - Depth < min_dp
@@ -20,6 +20,7 @@ def skip_variant(record, min_dp, min_ad):
         - record: pysam.VariantRecord. SNP record
         - min_dp: int. Minimum depth to filter by
         - min_ad: int. Minimum alternative allele to filter by
+        - caller: str. Tool used for SNP calling, one of deepvariant or platypus
 
     Returns:
         Boolean as to whether or not the SNP should be skipped (filtered)
@@ -27,10 +28,16 @@ def skip_variant(record, min_dp, min_ad):
     """
     # Get the depth (DP), genotype (GT) and variant count (AD) for each variant, assume only one sample
     this_sample = record.samples[0]
-    depth = this_sample['NR'][0] # DP for deepvariant
+    if caller == 'deepvariant':
+        depth = this_sample['DP'][0]
+        # Keep only last value (only bi-allelic variants are going to be kept, so we are confident that will always be the right value)
+        variant_count = this_sample['AD'][1]
+    elif caller == 'platypus': 
+        depth = this_sample['NR'][0]
+        variant_count = this_sample['NV'][0]
+    else:
+        raise Exception('caller needs to be one of "platypus" or "deepvariant"')
     gt = this_sample['GT']
-    # Keep only last value (only bi-allelic variants are going to be kept, so we are confident that will always be the right value)
-    variant_count = this_sample['NV'][0] # AD for deepvariant, and [1] in deepvariant
     #Filter
     filt = list(record.filter)[0]
     # Ref alt to check if variant is bi-allelic
@@ -63,6 +70,7 @@ def format_nts(nt_list):
 def main():
     parser = argparse.ArgumentParser(description='Script to combine 1000G SNPs with het patient-specific SNPs and parse into ASCAT format')
     parser.add_argument('-i', '--input_vcf', help = 'Input germline SNP VCF - Currently expects a Platypus VCF', required = True)
+    parser.add_argument('-c', '--caller', help = 'Variant caller used to generate the VCF file, one of "deepvariant" or "platypus"', required = True)    
     parser.add_argument('-l', '--loci_input', help = 'Path to directory with 1000G alleles formatted for ASCAT - Assumes the chr name is on the file before .txt', required = True)
     parser.add_argument('-d', '--min_dp', help = 'Minimum depth to filter SNPs by', default = 30)
     parser.add_argument('-a', '--min_ad', help = 'Minimum alt allele depth per SNP', default = 10)
@@ -77,7 +85,7 @@ def main():
     all_snps = list()
     for record in vcf.fetch():
 
-        if (skip_variant(record, args.min_dp, args.min_ad)):
+        if (skip_variant(record, args.min_dp, args.min_ad, args.caller)):
             continue
         else:
             snp_dict = {'chr':record.chrom, 'position':record.pos, 'ref':record.ref, 'alt':record.alts[0]}
