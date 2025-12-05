@@ -18,7 +18,7 @@ tumour_bam <- paste0(args$bam_path, '/', args$sample_name_hash, '.', args$alignm
 gl_bam <- paste0(args$bam_path, '/', args$gl_hash, '.', args$alignment_ext)
 
 # Make sure BAMs exist
-assertthat::assert_that(all(c(file.exists(tumour_bam), file.exists(gl_bam))), msg = 'Tumour and/or germline BAMs are missing, check the BAM path provided')
+assertthat::assert_that(all(c(file.exists(tumour_bam), file.exists(gl_bam))), msg = 'Tumour and/or germline BAM/CRAMs are missing, check the BAM/CRAM path provided')
 if (args$sex == 'Male') {
     clinical_sex <- 'XY'
 } else if (args$sex == 'Female') {
@@ -44,19 +44,19 @@ ascat.prepareHTS(
     alleles.prefix = args$alleles_prefix,
     loci.prefix = args$loci_prefix,
     gender = clinical_sex,
-    genomeVersion = "hg19",
+    genomeVersion = "hg38",
     nthreads = 2,
     tumourLogR_file = logr_tumour_file,
     tumourBAF_file = baf_tumour_file,
     normalLogR_file = logr_gl_file,
     normalBAF_file = baf_gl_file,
     minCounts = 20,
-    BED_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v1/capture_targets/SureSelectV5_TRACERx_Edition.padded.reduced.bed',
-    probloci_file = '/nemo/lab/swantonc/working/ruizc/2025-06-27-compare_hg38_qc/results/2025-10-30-test_ascat_logr/input/probloci_270415.txt',
+    BED_file = '/nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v3/capture_targets/SureSelectV5/SureSelectv5_TRACERx_edition_hg38.padded.reduced.bed.gz',
+    probloci_file = '/nemo/lab/swantonc/working/ruizc/2025-06-27-compare_hg38_qc/results/2025-10-30-test_ascat_logr/input/probloci.txt.gz',
     chrom_names = c(1:22, "X"),
     min_base_qual = 20,
     min_map_qual = 20,
-    additional_allelecounter_flags = NA,
+    additional_allelecounter_flags = "--ref /nemo/project/proj-tracerx-lung/tracerx/_PIPELINE/TRACERx-assets/v3/reference/hg38/hg38_u2af1/GRCh38.d1.vd1.chr21fix.fa",
     skip_allele_counting_tumour = FALSE,
     skip_allele_counting_normal = FALSE,
     loci_binsize = 1,
