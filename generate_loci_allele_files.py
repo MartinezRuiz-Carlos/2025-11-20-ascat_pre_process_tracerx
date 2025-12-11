@@ -29,7 +29,7 @@ def skip_variant(record, min_dp, min_ad, caller):
     # Get the depth (DP), genotype (GT) and variant count (AD) for each variant, assume only one sample
     this_sample = record.samples[0]
     if caller == 'deepvariant':
-        depth = this_sample['DP'][0]
+        depth = this_sample['DP']
         # Keep only last value (only bi-allelic variants are going to be kept, so we are confident that will always be the right value)
         variant_count = this_sample['AD'][1]
     elif caller == 'platypus': 
